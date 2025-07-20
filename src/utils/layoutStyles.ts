@@ -137,8 +137,21 @@ export const layoutConfigs: Record<LayoutStyle, LayoutConfig> = {
 };
 
 export class LayoutApplier {
-  static generateCSS(style: LayoutStyle): string {
-    const config = layoutConfigs[style];
+  static generateCSS(
+    style: LayoutStyle,
+    overrides?: { margin?: string; fontFamily?: string }
+  ): string {
+    const config: LayoutConfig = JSON.parse(
+      JSON.stringify(layoutConfigs[style])
+    );
+    if (overrides?.margin) {
+      config.pageLayout.margins = overrides.margin;
+    }
+    if (overrides?.fontFamily) {
+      config.fonts.title = overrides.fontFamily;
+      config.fonts.heading = overrides.fontFamily;
+      config.fonts.body = overrides.fontFamily;
+    }
     
     return `
       @page {
@@ -150,8 +163,9 @@ export class LayoutApplier {
         font-family: ${config.fonts.body};
         line-height: ${config.spacing.lineHeight};
         color: ${config.colors.text};
-        margin: 0;
+        margin: ${config.pageLayout.margins};
         padding: 0;
+        box-sizing: border-box;
       }
       
       h1 {
