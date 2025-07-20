@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
-    include: ['mammoth', 'markdown-it'],
+    include: ['mammoth', 'markdown-it', 'html2pdf.js'],
   },
 });
