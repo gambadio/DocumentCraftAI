@@ -21,7 +21,6 @@ export class FileProcessor {
     
     const content: DocumentElement[] = [];
     const images: ImageElement[] = [];
-    let position = 0;
 
     for (const token of tokens) {
       if (token.type === 'heading_open') {
@@ -44,8 +43,7 @@ export class FileProcessor {
           while ((match = imageRegex.exec(contentToken.content)) !== null) {
             images.push({
               url: match[2],
-              alt: match[1],
-              position: position
+              alt: match[1]
             });
             paragraphContent = paragraphContent.replace(match[0], `[IMAGE_PLACEHOLDER_${images.length - 1}]`);
           }
@@ -56,7 +54,6 @@ export class FileProcessor {
           });
         }
       }
-      position++;
     }
 
     return {
@@ -89,12 +86,11 @@ export class FileProcessor {
       if (element.tagName === 'IMG') {
         images.push({
           url: (element as HTMLImageElement).src,
-          alt: (element as HTMLImageElement).alt || '',
-          position: i
+          alt: (element as HTMLImageElement).alt || ''
         });
       } else {
         content.push({
-          type: elementType.type as any,
+          type: elementType.type as DocumentElement['type'],
           level: elementType.level,
           content: element.textContent || '',
           style: elementType.style
@@ -127,8 +123,11 @@ export class FileProcessor {
     return style.fontSize || '16px';
   }
 
-  private static classifyElement(element: Element, fontSize: string, fontSizes: { [key: string]: number }) {
-    const text = element.textContent || '';
+  private static classifyElement(
+    element: Element,
+    fontSize: string,
+    fontSizes: { [key: string]: number }
+  ): { type: DocumentElement['type']; level?: number; style: string } {
     const size = parseInt(fontSize);
     
     // Find the most common font size (likely body text)
@@ -165,13 +164,11 @@ export class FileProcessor {
     const citationRegex = /\([^)]*\d{4}[^)]*\)/g;
     const citations = [];
     let match;
-    let position = 0;
     
     while ((match = citationRegex.exec(text)) !== null) {
       citations.push({
         original: match[0],
-        harvard: this.convertToHarvard(match[0]),
-        position: match.index
+        harvard: this.convertToHarvard(match[0])
       });
     }
     

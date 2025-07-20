@@ -1,8 +1,6 @@
-import jsPDF from 'jspdf';
 import { saveAs } from 'file-saver';
 import { DocumentStructure, LayoutStyle, OutputFormat, ProcessingOptions } from '../types';
 import { LayoutApplier } from './layoutStyles';
-import { ImageProcessor } from './imageProcessor';
 
 export class DocumentGenerator {
   static async generateDocument(
@@ -25,7 +23,10 @@ export class DocumentGenerator {
     layoutStyle: LayoutStyle,
     options: ProcessingOptions
   ): Promise<string> {
-    const css = LayoutApplier.generateCSS(layoutStyle);
+    const css = LayoutApplier.generateCSS(layoutStyle, {
+      margin: options.margin ? `${options.margin}cm` : undefined,
+      fontFamily: options.fontFamily,
+    });
     let html = `
       <!DOCTYPE html>
       <html>
@@ -48,7 +49,7 @@ export class DocumentGenerator {
         case 'heading':
           html += `<h${element.level || 1}>${element.content}</h${element.level || 1}>`;
           break;
-        case 'paragraph':
+        case 'paragraph': {
           let content = element.content;
           
           // Replace image placeholders
@@ -70,6 +71,7 @@ export class DocumentGenerator {
           
           html += `<p>${content}</p>`;
           break;
+        }
         case 'image':
           html += `<img src="${element.content}" alt="" />`;
           break;
@@ -99,45 +101,32 @@ export class DocumentGenerator {
     return toc;
   }
 
-  private static async generatePDF(html: string, filename: string): Promise<string> {
-    // Create a temporary iframe to render the HTML
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.left = '-9999px';
-    iframe.style.width = '210mm';
-    iframe.style.height = '297mm';
-    document.body.appendChild(iframe);
+  private static async generatePDF(
+    html: string,
+    filename: string
+  ): Promise<string> {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    document.body.appendChild(container);
 
-    const iframeDoc = iframe.contentDocument!;
-    iframeDoc.open();
-    iframeDoc.write(html);
-    iframeDoc.close();
+    const html2pdf = (await import('html2pdf.js')).default;
+    const worker = html2pdf()
+      .from(container)
+      .set({
+        margin: 0,
+        filename: `${filename}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      });
 
-    // Wait for content to load
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const pdfBlob = (await worker.outputPdf('blob')) as Blob;
 
-    // Use html2canvas to capture the content
-    const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(iframeDoc.body, {
-      width: 794, // A4 width in pixels at 96 DPI
-      height: 1123, // A4 height in pixels at 96 DPI
-      scale: 2
-    });
+    document.body.removeChild(container);
 
-    // Create PDF
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-
-    // Clean up
-    document.body.removeChild(iframe);
-
-    // Save the PDF
-    const pdfBlob = pdf.output('blob');
-    const url = URL.createObjectURL(pdfBlob);
     saveAs(pdfBlob, `${filename}.pdf`);
-    
-    return url;
+    return URL.createObjectURL(pdfBlob);
   }
 
   private static async generateDocx(html: string, filename: string): Promise<string> {

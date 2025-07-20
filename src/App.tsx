@@ -3,8 +3,7 @@ import { Upload, FileText, BookOpen, Briefcase, GraduationCap, PenTool, Download
 import { FileProcessor } from './utils/fileProcessor';
 import { ImageProcessor } from './utils/imageProcessor';
 import { DocumentGenerator } from './utils/documentGenerator';
-import { AIReviewer } from './utils/aiReviewer';
-import { UploadedFile, ProcessingOptions, LayoutStyle, OutputFormat, DocumentStructure, ProcessingResult } from './types';
+import { UploadedFile, ProcessingOptions, LayoutStyle, OutputFormat, ProcessingResult } from './types';
 
 function App() {
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
@@ -13,7 +12,9 @@ function App() {
     tableOfContents: false,
     harvardCitations: false,
     downloadImages: true,
-    aiReview: true
+    aiReview: true,
+    margin: 2,
+    fontFamily: ''
   });
   const [layoutStyle, setLayoutStyle] = useState<LayoutStyle>('modern');
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('pdf');
@@ -311,6 +312,37 @@ function App() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="mt-6 space-y-4">
+                <div>
+                  <label className="text-white block mb-2">Page Margin (cm)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    step={0.5}
+                    value={options.margin}
+                    onChange={(e) =>
+                      setOptions((prev) => ({ ...prev, margin: parseFloat(e.target.value) }))
+                    }
+                    className="w-full rounded-lg p-2 text-black"
+                  />
+                </div>
+                <div>
+                  <label className="text-white block mb-2">Font Family</label>
+                  <select
+                    value={options.fontFamily}
+                    onChange={(e) =>
+                      setOptions((prev) => ({ ...prev, fontFamily: e.target.value }))
+                    }
+                    className="w-full rounded-lg p-2 text-black"
+                  >
+                    <option value="">Default</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Times New Roman, serif">Times New Roman</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>

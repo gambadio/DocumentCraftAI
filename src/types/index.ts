@@ -10,6 +10,8 @@ export interface ProcessingOptions {
   harvardCitations: boolean;
   downloadImages: boolean;
   aiReview: boolean;
+  margin: number;
+  fontFamily: string;
 }
 
 export type LayoutStyle = 'business' | 'academic' | 'novel' | 'modern' | 'classic';
@@ -32,14 +34,12 @@ export interface DocumentElement {
 export interface ImageElement {
   url: string;
   alt: string;
-  position: number;
   blob?: Blob;
 }
 
 export interface Citation {
   original: string;
   harvard: string;
-  position: number;
 }
 
 export interface ProcessingResult {
