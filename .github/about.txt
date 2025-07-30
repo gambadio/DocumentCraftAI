@@ -1,0 +1,1 @@
+DocumentCraft AI transforms poorly formatted Markdown or Word files into publication-ready documents using smart structure detection and advanced styling options. It features Harvard citation conversion, image optimization, multiple layout templates (academic/business), PDF/Word export—and even provides AI-powered quality review suggestions.
